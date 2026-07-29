@@ -22,13 +22,20 @@ namespace FacebookPost.Server.Builder
                 .Replace("{rating}", product.Rating)
                 .Replace("{sales}", product.Sales);
 
+            var hashtags = string.Join(" ", 
+                new[]
+                {
+                    string.Join(" ", template.Hashtags),
+                    product.Hashtags
+                }.Where(x => !string.IsNullOrWhiteSpace(x)));
+
             return $"""
             {template.Hook}
             {template.Cta.Replace("{link_affiliate}", product.LinkAffiliate)}
 
             {body}
 
-            {string.Join(" ", template.Hashtags)}
+            {hashtags}
             """;
         }
     }

@@ -1,18 +1,20 @@
 ﻿using ClosedXML.Excel;
 using Newtonsoft.Json.Linq;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace FacebookPost.Server.Model
 {
     public class ProductDataService : IProductDataService
     {
-        public async Task<string> AddProductToDataFileAsync(string sourceFile, string targetFileName, bool isShopMall)
+        public async Task<string> AddProductToDataFileAsync(string sourceFile, string targetFileName)
         {
             string jsonFile = @"D:\AffiliateData\add-product.json";
             string affiliateFile = sourceFile;
             string targetFile = targetFileName;
 
             //B1 + B2 + B3
-            ShopeeProduct product = BuildShopeeProduct(jsonFile, affiliateFile, isShopMall);
+            ShopeeProduct product = BuildShopeeProduct(jsonFile, affiliateFile);
 
             //B4
             var result = SaveProductToExcel(targetFile, product);
@@ -20,7 +22,7 @@ namespace FacebookPost.Server.Model
             return await Task.FromResult(result);
         }
 
-        private ShopeeProduct BuildShopeeProduct(string jsonPath, string affiliateExcelPath, bool isShopMall)
+        private ShopeeProduct BuildShopeeProduct(string jsonPath, string affiliateExcelPath)
         {
             JObject json = JObject.Parse(File.ReadAllText(jsonPath));
 
@@ -28,8 +30,8 @@ namespace FacebookPost.Server.Model
 
             return new ShopeeProduct
             {
-                ShopName = json["data"]?["item"]?["brand"]?.ToString() ?? "",
-                ShopMall = isShopMall ? "yes" : "no",
+                ShopName = json["data"]?["shop_detailed"]?["name"]?.ToString() ?? "",
+                ShopMall = json["data"]?["shop_detailed"]?["is_official_shop"]?.ToString().Trim().ToLower() == "true" ? "yes" : "no",
                 ItemId = itemId,
                 Title = json["data"]?["item"]?["title"]?.ToString() ?? "",
 
@@ -40,6 +42,8 @@ namespace FacebookPost.Server.Model
                 Rating = Math.Round(json["data"]?["item"]?["item_rating"]?["rating_star"]?.Value<double>() ?? 0, 1).ToString("0.0"),
 
                 Sales = json["data"]?["product_review"]?["sold_count_display"]?.ToString() ?? "",
+
+                Hashtags = GetHashtags(json),
 
                 LinkAffiliate = GetAffiliateLink(affiliateExcelPath, itemId)
             };
@@ -127,6 +131,7 @@ namespace FacebookPost.Server.Model
             SetCell(ws, columns, rowNumber, "product_rating", product.Rating);
             SetCell(ws, columns, rowNumber, "product_sales", product.Sales);
             SetCell(ws, columns, rowNumber, "link_affiliate", product.LinkAffiliate);
+            SetCell(ws, columns, rowNumber, "hash_tags", product.Hashtags);
             SetCell(ws, columns, rowNumber, "is_active", true.ToString());
 
             wb.Save();
@@ -140,6 +145,22 @@ namespace FacebookPost.Server.Model
             {
                 ws.Cell(rowNumber, col).Value = value;
             }
+        }
+
+        private static string GetHashtags(JObject json)
+        {
+            Regex hashtagRegex = new(@"#\w+", RegexOptions.Compiled);
+
+            var paragraphList = json["data"]?["product_description"]?["paragraph_list"] as JArray;
+
+            if (paragraphList == null || paragraphList.Count == 0)
+                return string.Empty;
+
+            var text = paragraphList.Last?["text"]?.ToString() ?? string.Empty;
+
+            return hashtagRegex.Matches(text).Count > 3
+                ? text
+                : string.Empty;
         }
     }
 }

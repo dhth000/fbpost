@@ -12,6 +12,7 @@
         public string Rating { get; set; } = "";
         public string Sales { get; set; } = "";
         public string LinkAffiliate { get; set; } = "";
+        public string Hashtags { get; set; } = "";
         public string IsActive { get; set; } = "";
     }
 }

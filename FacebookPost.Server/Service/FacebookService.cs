@@ -27,12 +27,12 @@ namespace FacebookPost.Server.Service
             var shopeeData = await ReadDataFileFromDriveAsync(page.ProductsUrl);
             if (shopeeData == null || shopeeData.Count == 0) return "No data available to process.";
 
-            var fiveProducts = GetFiveProductPost(shopeeData);
-            if (fiveProducts == null || fiveProducts.Count == 0) return "No valid products found.";
+            var productsPost = GetProductsPost(shopeeData);
+            if (productsPost == null || productsPost.Count == 0) return "No valid products found.";
 
             var result = string.Empty;
 
-            foreach (var (index, product) in fiveProducts.Select((x, i) => (i, x)))
+            foreach (var (index, product) in productsPost.Select((x, i) => (i, x)))
             {
                 var postContent = _facebookPostBuilder.Build(product);
 
@@ -135,7 +135,7 @@ namespace FacebookPost.Server.Service
             return result.Id;
         }
 
-        private async Task CreateScheduledPostAsync(FacebookPageOption page,string message, List<string> mediaIds, DateTime publishTime)
+        private async Task CreateScheduledPostAsync(FacebookPageOption page, string message, List<string> mediaIds, DateTime publishTime)
         {
             var url = $"https://graph.facebook.com/{page.GraphVersion}/{page.PageId}/feed";
 
@@ -226,6 +226,7 @@ namespace FacebookPost.Server.Service
                         Rating = GetString(row, headerMap, "product_rating"),
                         Sales = GetString(row, headerMap, "product_sales"),
                         LinkAffiliate = GetString(row, headerMap, "link_affiliate"),
+                        Hashtags = GetString(row, headerMap, "hash_tags"),
                         IsActive = GetString(row, headerMap, "is_active")
                     };
 
@@ -273,33 +274,42 @@ namespace FacebookPost.Server.Service
             return fullPath;
         }
 
-        private static DateTime GetRandomPublishTime(int index)
+        private DateTime GetRandomPublishTime(int index)
         {
             var random = Random.Shared;
-
             var today = DateTime.Today;
 
-            return index switch
+            int[] TimeSlots =
+            {
+                0, // 07:00
+                1, // 11:30
+                2, // 19:00
+                3, // 20:30
+                2, // 19:00 (ưu tiên)
+                3  // 20:30 (ưu tiên)
+            };
+
+            var slot = TimeSlots[index % TimeSlots.Length];
+
+            return slot switch
             {
                 0 => today
-                        .AddHours(7)
-                        .AddMinutes(random.Next(0, 91)),
+                    .AddHours(7)
+                    .AddMinutes(random.Next(0, 91)),          // 07:00 - 08:30
 
                 1 => today
-                        .AddHours(11)
-                        .AddMinutes(30 + random.Next(0, 91)),
+                    .AddHours(11)
+                    .AddMinutes(30 + random.Next(0, 91)),     // 11:30 - 13:00
 
                 2 => today
-                        .AddHours(19)
-                        .AddMinutes(random.Next(0, 91)),
+                    .AddHours(19)
+                    .AddMinutes(random.Next(0, 91)),          // 19:00 - 20:30
 
                 3 => today
-                        .AddHours(20)
-                        .AddMinutes(30 + random.Next(0, 91)),
+                    .AddHours(20)
+                    .AddMinutes(30 + random.Next(0, 91)),     // 20:30 - 22:00
 
-                _ => today
-                        .AddHours(20)
-                        .AddMinutes(30 + random.Next(0, 91))
+                _ => throw new InvalidOperationException($"Invalid time slot: {slot}")
             };
         }
 
@@ -312,17 +322,21 @@ namespace FacebookPost.Server.Service
                 : "";
         }
 
-        private static List<ShopeeProduct> GetFiveProductPost(List<ShopeeProduct> shopeeProducts)
+        private List<ShopeeProduct> GetProductsPost(List<ShopeeProduct> shopeeProducts)
         {
+            var numbersOfPost = _facebookOptions.NumbersOfPosts;
             var baseDate = new DateTime(2026, 1, 1);
             int days = (DateTime.Today - baseDate).Days;
-            int block = days % (int)Math.Ceiling(shopeeProducts.Count / 5.0);
-            int skip = block * 5;
-            return shopeeProducts
-                .Where(x => x.IsActive.Trim().ToLower() != "false")
+            int block = days % (int)Math.Ceiling(shopeeProducts.Count / (double)numbersOfPost);
+            int skip = block * numbersOfPost;
+
+            var ordered = shopeeProducts
+                .Where(x => x.IsActive.Trim() != "false")
                 .OrderBy(x => x.Index)
-                .Skip(skip)
-                .Take(5)
+                .ToList();
+
+            return Enumerable.Range(0, numbersOfPost)
+                .Select(i => ordered[(skip + i) % ordered.Count])
                 .ToList();
         }
 

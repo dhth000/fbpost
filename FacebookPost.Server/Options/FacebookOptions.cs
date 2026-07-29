@@ -2,6 +2,7 @@
 {
     public class FacebookOptions
     {
+        public int NumbersOfPosts { get; set; } = 5;
         public List<FacebookPageOption> Pages { get; set; } = [];
     }
 

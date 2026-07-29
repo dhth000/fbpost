@@ -29,9 +29,9 @@ namespace FacebookPost.Server.Controllers
         }
 
         [HttpGet("AddProductToDataFileAsync")]
-        public async Task<string> AddProductToDataFileAsync(string sourceFile, string targetFile, bool isShopMall)
+        public async Task<string> AddProductToDataFileAsync(string sourceFile, string targetFile)
         {
-            return await _productDataService.AddProductToDataFileAsync(sourceFile, targetFile, isShopMall);
+            return await _productDataService.AddProductToDataFileAsync(sourceFile, targetFile);
         }
 
         [HttpPost("update-item-ids")]
