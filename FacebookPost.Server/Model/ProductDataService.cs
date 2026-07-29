@@ -5,11 +5,11 @@ namespace FacebookPost.Server.Model
 {
     public class ProductDataService : IProductDataService
     {
-        public async Task<string> AddProductToDataFileAsync(string targetFileName, bool isShopMall)
+        public async Task<string> AddProductToDataFileAsync(string sourceFile, string targetFileName, bool isShopMall)
         {
-            string jsonFile = @"D:\add-product.json";
-            string affiliateFile = @"D:\build-affiliate-link.xlsx";
-            string targetFile = $@"D:\{targetFileName}";
+            string jsonFile = @"D:\AffiliateData\add-product.json";
+            string affiliateFile = sourceFile;
+            string targetFile = targetFileName;
 
             //B1 + B2 + B3
             ShopeeProduct product = BuildShopeeProduct(jsonFile, affiliateFile, isShopMall);

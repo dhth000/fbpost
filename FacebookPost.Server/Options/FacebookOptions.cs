@@ -2,10 +2,19 @@
 {
     public class FacebookOptions
     {
-        public string PageId { get; set; } = "";
+        public List<FacebookPageOption> Pages { get; set; } = [];
+    }
 
-        public string AccessToken { get; set; } = "";
+    public class FacebookPageOption
+    {
+        public required string PageId { get; init; }
 
-        public string GraphVersion { get; set; } = "v23.0";
+        public required string Name { get; init; }
+
+        public required string ProductsUrl { get; init; }
+
+        public required string AccessToken { get; init; }
+
+        public required string GraphVersion { get; init; }
     }
 }

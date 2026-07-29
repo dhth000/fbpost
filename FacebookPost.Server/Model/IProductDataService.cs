@@ -2,6 +2,6 @@
 {
     public interface IProductDataService
     {
-        Task<string> AddProductToDataFileAsync(string targetFileName, bool isShopMall);
+        Task<string> AddProductToDataFileAsync(string sourceFile, string targetFileName, bool isShopMall);
     }
 }

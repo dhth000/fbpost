@@ -1,6 +1,5 @@
 ﻿using FacebookPost.Server.Model;
 using FacebookPost.Server.Service;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FacebookPost.Server.Controllers
@@ -11,24 +10,50 @@ namespace FacebookPost.Server.Controllers
     {
         private readonly IFacebookService _facebookService;
         private readonly IProductDataService _productDataService;
+        private readonly IShopeeLinkService _shopeeLinkService;
 
-        public FacebookController(IFacebookService facebookService, IProductDataService productDataService)
+        public FacebookController(IFacebookService facebookService, 
+            IProductDataService productDataService, 
+            IShopeeLinkService shopeeLinkService)
         {
             _facebookService = facebookService;
             _productDataService = productDataService;
+            _shopeeLinkService = shopeeLinkService;
+        }
+
+        [HttpPost("pages/{pageId}/publish")]
+        public async Task<IActionResult> Publish(string pageId)
+        {
+            var result = await _facebookService.ProcessCreatePostToFacebook(pageId);
+            return Ok(result);
         }
 
         [HttpGet("AddProductToDataFileAsync")]
-        public async Task<string> AddProductToDataFileAsync(string fileName, bool isShopMall)
+        public async Task<string> AddProductToDataFileAsync(string sourceFile, string targetFile, bool isShopMall)
         {
-            return await _productDataService.AddProductToDataFileAsync(fileName, isShopMall);
+            return await _productDataService.AddProductToDataFileAsync(sourceFile, targetFile, isShopMall);
         }
 
-        [HttpGet("CreateFacebookPostAsync")]
-        public async Task<string> CreateFacebookPostAsync()
+        [HttpPost("update-item-ids")]
+        public async Task<IActionResult> UpdateItemId(string sourceFile)
         {
-            var giaDungFileUrl = "https://drive.usercontent.google.com/download?id=1b6RMVPkNDOCCSbu3A4wImG8DL_LpWWyO";
-            return await _facebookService.ProcessCreatePostToFacebook(giaDungFileUrl);
+            if (string.IsNullOrWhiteSpace(sourceFile))
+            {
+                return BadRequest("sourceFile is required.");
+            }
+
+            if (!System.IO.File.Exists(sourceFile))
+            {
+                return NotFound($"File not found: {sourceFile}");
+            }
+
+            await _shopeeLinkService.UpdateShopeeLinkAsync(sourceFile);
+
+            return Ok(new
+            {
+                Success = true,
+                Message = "Update completed."
+            });
         }
     }
 }

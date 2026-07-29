@@ -2,9 +2,6 @@
 using FacebookPost.Server.Builder;
 using FacebookPost.Server.Model;
 using FacebookPost.Server.Options;
-using System.Diagnostics;
-using System.Net.Http.Headers;
-using System.Text;
 using System.Text.Json;
 
 namespace FacebookPost.Server.Service
@@ -22,15 +19,16 @@ namespace FacebookPost.Server.Service
             _facebookOptions = configuration.GetSection("Facebook").Get<FacebookOptions>()!;
         }
 
-        public async Task<string> ProcessCreatePostToFacebook(string downloadUrl)
+        public async Task<string> ProcessCreatePostToFacebook(string pageId)
         {
-            var shopeeData = await ReadDataFileFromDriveAsync(downloadUrl);
+            var page = GetFacebookPage(pageId);
+            if (page == null) return $"Facebook page with ID {pageId} not found.";
+
+            var shopeeData = await ReadDataFileFromDriveAsync(page.ProductsUrl);
             if (shopeeData == null || shopeeData.Count == 0) return "No data available to process.";
 
             var fiveProducts = GetFiveProductPost(shopeeData);
             if (fiveProducts == null || fiveProducts.Count == 0) return "No valid products found.";
-
-            var postContents = fiveProducts.Select(product => (product.ItemId, _facebookPostBuilder.Build(product))).ToList();
 
             var result = string.Empty;
 
@@ -53,6 +51,7 @@ namespace FacebookPost.Server.Service
                 var publishTime = GetRandomPublishTime(index);
 
                 await PublishFacebookPostAsync(
+                    page,
                     imageFiles,
                     postContent,
                     publishTime <= DateTime.Now
@@ -65,13 +64,13 @@ namespace FacebookPost.Server.Service
                         File.Delete(file);
                 }
 
-                result += $"Processed product {product.Title} successfully.\n";
+                result += $"\nProcessed product {product.Title} successfully.\n";
             }
 
             return result;
         }
 
-        private async Task PublishFacebookPostAsync(List<string> imageFiles, string message, DateTime publishTime)
+        private async Task PublishFacebookPostAsync(FacebookPageOption page, List<string> imageFiles, string message, DateTime publishTime)
         {
             //----------------------------------------
             // Upload tất cả ảnh
@@ -81,7 +80,7 @@ namespace FacebookPost.Server.Service
 
             foreach (var image in imageFiles)
             {
-                var mediaId = await UploadPhotoAsync(image);
+                var mediaId = await UploadPhotoAsync(page, image);
 
                 mediaIds.Add(mediaId);
             }
@@ -91,20 +90,21 @@ namespace FacebookPost.Server.Service
             //----------------------------------------
 
             await CreateScheduledPostAsync(
+                page,
                 message,
                 mediaIds,
                 publishTime);
         }
 
-        private async Task<string> UploadPhotoAsync(string imagePath)
+        private async Task<string> UploadPhotoAsync(FacebookPageOption page, string imagePath)
         {
             var url =
-                $"https://graph.facebook.com/{_facebookOptions.GraphVersion}/{_facebookOptions.PageId}/photos";
+                $"https://graph.facebook.com/{page.GraphVersion}/{page.PageId}/photos";
 
             using var form = new MultipartFormDataContent();
 
             form.Add(
-                new StringContent(_facebookOptions.AccessToken),
+                new StringContent(page.AccessToken),
                 "access_token");
 
             form.Add(
@@ -135,14 +135,14 @@ namespace FacebookPost.Server.Service
             return result.Id;
         }
 
-        private async Task CreateScheduledPostAsync(string message, List<string> mediaIds, DateTime publishTime)
+        private async Task CreateScheduledPostAsync(FacebookPageOption page,string message, List<string> mediaIds, DateTime publishTime)
         {
-            var url = $"https://graph.facebook.com/{_facebookOptions.GraphVersion}/{_facebookOptions.PageId}/feed";
+            var url = $"https://graph.facebook.com/{page.GraphVersion}/{page.PageId}/feed";
 
             using var form = new MultipartFormDataContent();
 
             form.Add(
-                new StringContent(_facebookOptions.AccessToken),
+                new StringContent(page.AccessToken),
                 "access_token");
 
             form.Add(
@@ -324,6 +324,11 @@ namespace FacebookPost.Server.Service
                 .Skip(skip)
                 .Take(5)
                 .ToList();
+        }
+
+        private FacebookPageOption GetFacebookPage(string pageId)
+        {
+            return _facebookOptions.Pages.First(x => x.PageId == pageId);
         }
     }
 }

@@ -19,14 +19,12 @@ namespace FacebookPost.Server
 
             builder.Services.AddEndpointsApiExplorer();
 
-            //builder.Services.AddFacebookSdk(builder.Configuration);
-
             builder.Services.AddHttpClient<IShopeeService, ShopeeService>();
             builder.Services.AddSingleton<ITemplateService, TemplateService>();
             builder.Services.AddScoped<IFacebookPostBuilder, FacebookPostBuilder>();
             builder.Services.AddScoped<IFacebookService, FacebookService>();
             builder.Services.AddScoped<IProductDataService, ProductDataService>();
-            //builder.Services.AddScoped<IFacebookPostService, FacebookPostService>();
+            builder.Services.AddScoped<IShopeeLinkService, ShopeeLinkService>();
 
             var app = builder.Build();
 
