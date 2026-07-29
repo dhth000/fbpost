@@ -1,0 +1,11 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "FacebookPost.Server\\FacebookPost.Server.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

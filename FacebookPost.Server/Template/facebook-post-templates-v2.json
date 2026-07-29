@@ -1,0 +1,702 @@
+[
+  {
+    "id": 1,
+    "hook": "🔥 Deal này đang rất đáng để xem!",
+    "body": "📦 {title}\n\n🏪 {shop_name}\n⭐ Rating: {rating}\n🛒 Đã bán: {sales}",
+    "cta": "👉 Giá mới nhất tại đây: {link_affiliate}",
+    "hashtags": [
+      "#KhuyenMai",
+      "#FlashSale",
+      "#GiaTot",
+      "#DealHot"
+    ],
+    "priority": 3,
+    "isActive": true
+  },
+  {
+    "id": 2,
+    "hook": "⏰ Xem ngay trước khi giá thay đổi!",
+    "body": "📦 {title}\n\n🏪 {shop_name}\n⭐ Rating: {rating}\n🛒 Đã bán: {sales}",
+    "cta": "👉 Xem ngay: {link_affiliate}",
+    "hashtags": [
+      "#ShopeeMall",
+      "#KhuyenMai",
+      "#DealMoi",
+      "#Voucher"
+    ],
+    "priority": 4,
+    "isActive": true
+  },
+  {
+    "id": 3,
+    "hook": "💥 Đừng bỏ lỡ deal hôm nay!",
+    "body": "📦 {title}\n\n🏪 {shop_name}\n⭐ Rating: {rating}\n🛒 Đã bán: {sales}",
+    "cta": "👉 Xem sản phẩm trên Shopee: {link_affiliate}",
+    "hashtags": [
+      "#DealHot",
+      "#ShopeeMall",
+      "#Shopee",
+      "#FlashSale"
+    ],
+    "priority": 4,
+    "isActive": true
+  },
+  {
+    "id": 4,
+    "hook": "🚀 Mở xem ngay khi ưu đãi vẫn còn!",
+    "body": "✅ {title}\n\n🏪 {shop_name}\n⭐ Đánh giá: {rating}\n🛍 Đã bán: {sales}",
+    "cta": "👉 Click để xem sản phẩm: {link_affiliate}",
+    "hashtags": [
+      "#GiaTot",
+      "#KhuyenMai",
+      "#ShopeeMall",
+      "#Voucher"
+    ],
+    "priority": 1,
+    "isActive": true
+  },
+  {
+    "id": 5,
+    "hook": "🎁 Có thể hôm nay là thời điểm tốt để xem!",
+    "body": "📦 {title}\n\n🏪 {shop_name}\n⭐ Rating: {rating}\n🛒 Đã bán: {sales}",
+    "cta": "👉 Giá mới nhất tại đây: {link_affiliate}",
+    "hashtags": [
+      "#Shopee",
+      "#DealMoi",
+      "#GiaTot",
+      "#KhuyenMai"
+    ],
+    "priority": 4,
+    "isActive": true
+  },
+  {
+    "id": 6,
+    "hook": "🔥 Deal đang HOT trên Shopee!",
+    "body": "✨ {title}\n\n🏪 {shop_name}\n⭐ {rating}\n🛍 Lượt bán: {sales}",
+    "cta": "👉 Click để xem sản phẩm: {link_affiliate}",
+    "hashtags": [
+      "#FlashSale",
+      "#Shopee",
+      "#KhuyenMai",
+      "#ShopeeMall"
+    ],
+    "priority": 3,
+    "isActive": true
+  },
+  {
+    "id": 7,
+    "hook": "⚡ Mở xem ngay trước khi deal thay đổi!",
+    "body": "✅ {title}\n\n🏪 {shop_name}\n⭐ Đánh giá: {rating}\n🛍 Đã bán: {sales}",
+    "cta": "👉 Xem sản phẩm trên Shopee: {link_affiliate}",
+    "hashtags": [
+      "#Voucher",
+      "#DealHot",
+      "#Shopee",
+      "#DealMoi"
+    ],
+    "priority": 4,
+    "isActive": true
+  },
+  {
+    "id": 8,
+    "hook": "🛍 Deal hôm nay đang được nhiều người quan tâm!",
+    "body": "✅ {title}\n\n🏪 {shop_name}\n⭐ Đánh giá: {rating}\n🛍 Đã bán: {sales}",
+    "cta": "👉 Xem đánh giá của khách hàng: {link_affiliate}",
+    "hashtags": [
+      "#KhuyenMai",
+      "#Shopee",
+      "#DealMoi",
+      "#Voucher"
+    ],
+    "priority": 1,
+    "isActive": true
+  },
+  {
+    "id": 9,
+    "hook": "💥 Đừng để lỡ mức giá hiện tại!",
+    "body": "✅ {title}\n\n🏪 {shop_name}\n⭐ Đánh giá: {rating}\n🛍 Đã bán: {sales}",
+    "cta": "👉 Xem chi tiết tại đây: {link_affiliate}",
+    "hashtags": [
+      "#FlashSale",
+      "#Voucher",
+      "#DealHot",
+      "#Shopee"
+    ],
+    "priority": 1,
+    "isActive": true
+  },
+  {
+    "id": 10,
+    "hook": "⏰ Kiểm tra ngay trước khi ưu đãi thay đổi!",
+    "body": "✅ {title}\n\n🏪 {shop_name}\n⭐ Đánh giá: {rating}\n🛍 Đã bán: {sales}",
+    "cta": "👉 Link sản phẩm: {link_affiliate}",
+    "hashtags": [
+      "#KhuyenMai",
+      "#ShopeeMall",
+      "#Shopee",
+      "#Voucher"
+    ],
+    "priority": 3,
+    "isActive": true
+  },
+  {
+    "id": 11,
+    "hook": "🔥 Chỉ mất vài giây để xem deal này!",
+    "body": "✅ {title}\n\n🏪 {shop_name}\n⭐ Đánh giá: {rating}\n🛍 Đã bán: {sales}",
+    "cta": "👉 Mở link để xem thông tin đầy đủ: {link_affiliate}",
+    "hashtags": [
+      "#FlashSale",
+      "#ShopeeMall",
+      "#KhuyenMai",
+      "#Voucher"
+    ],
+    "priority": 1,
+    "isActive": true
+  },
+  {
+    "id": 12,
+    "hook": "🚀 Giá hôm nay có thể khác ngày mai!",
+    "body": "✅ {title}\n\n🏪 {shop_name}\n⭐ Đánh giá: {rating}\n🛍 Đã bán: {sales}",
+    "cta": "👉 Kiểm tra voucher mới nhất: {link_affiliate}",
+    "hashtags": [
+      "#Voucher",
+      "#Shopee",
+      "#FlashSale",
+      "#KhuyenMai"
+    ],
+    "priority": 1,
+    "isActive": true
+  },
+  {
+    "id": 13,
+    "hook": "🎁 Mở xem trước khi bỏ lỡ!",
+    "body": "✨ {title}\n\n🏪 {shop_name}\n⭐ {rating}\n🛍 Lượt bán: {sales}",
+    "cta": "👉 Xem sản phẩm trên Shopee: {link_affiliate}",
+    "hashtags": [
+      "#ShopeeMall",
+      "#GiaTot",
+      "#Shopee",
+      "#DealHot"
+    ],
+    "priority": 1,
+    "isActive": true
+  },
+  {
+    "id": 14,
+    "hook": "⚡ Deal hôm nay rất đáng chú ý!",
+    "body": "✨ {title}\n\n🏪 {shop_name}\n⭐ {rating}\n🛍 Lượt bán: {sales}",
+    "cta": "👉 Xem ưu đãi hôm nay: {link_affiliate}",
+    "hashtags": [
+      "#DealMoi",
+      "#Voucher",
+      "#FlashSale",
+      "#DealHot"
+    ],
+    "priority": 2,
+    "isActive": true
+  },
+  {
+    "id": 15,
+    "hook": "💥 Kiểm tra ngay khi ưu đãi vẫn còn!",
+    "body": "✨ {title}\n\n🏪 {shop_name}\n⭐ {rating}\n🛍 Lượt bán: {sales}",
+    "cta": "👉 Xem đánh giá của khách hàng: {link_affiliate}",
+    "hashtags": [
+      "#Voucher",
+      "#ShopeeMall",
+      "#DealHot",
+      "#Shopee"
+    ],
+    "priority": 1,
+    "isActive": true
+  },
+  {
+    "id": 16,
+    "hook": "🔥 Có một deal bạn không nên bỏ lỡ!",
+    "body": "📦 {title}\n\n🏪 {shop_name}\n⭐ Rating: {rating}\n🛒 Đã bán: {sales}",
+    "cta": "👉 Link sản phẩm: {link_affiliate}",
+    "hashtags": [
+      "#Voucher",
+      "#DealMoi",
+      "#FlashSale",
+      "#ShopeeMall"
+    ],
+    "priority": 1,
+    "isActive": true
+  },
+  {
+    "id": 17,
+    "hook": "⏰ Xem ngay trước khi mọi thứ thay đổi!",
+    "body": "📦 {title}\n\n🏪 {shop_name}\n⭐ Rating: {rating}\n🛒 Đã bán: {sales}",
+    "cta": "👉 Link sản phẩm: {link_affiliate}",
+    "hashtags": [
+      "#FlashSale",
+      "#Voucher",
+      "#KhuyenMai",
+      "#DealMoi"
+    ],
+    "priority": 2,
+    "isActive": true
+  },
+  {
+    "id": 18,
+    "hook": "🚀 Deal hôm nay đáng để kiểm tra!",
+    "body": "📦 {title}\n\n🏪 {shop_name}\n⭐ Rating: {rating}\n🛒 Đã bán: {sales}",
+    "cta": "👉 Xem sản phẩm trên Shopee: {link_affiliate}",
+    "hashtags": [
+      "#GiaTot",
+      "#FlashSale",
+      "#Voucher",
+      "#DealHot"
+    ],
+    "priority": 5,
+    "isActive": true
+  },
+  {
+    "id": 19,
+    "hook": "🎁 Mở link ngay để xem ưu đãi!",
+    "body": "✅ {title}\n\n🏪 {shop_name}\n⭐ Đánh giá: {rating}\n🛍 Đã bán: {sales}",
+    "cta": "👉 Xem đánh giá của khách hàng: {link_affiliate}",
+    "hashtags": [
+      "#KhuyenMai",
+      "#DealMoi",
+      "#ShopeeMall",
+      "#Voucher"
+    ],
+    "priority": 4,
+    "isActive": true
+  },
+  {
+    "id": 20,
+    "hook": "⚡ Đừng chờ đến khi giá thay đổi!",
+    "body": "✅ {title}\n\n🏪 {shop_name}\n⭐ Đánh giá: {rating}\n🛍 Đã bán: {sales}",
+    "cta": "👉 Xem ngay: {link_affiliate}",
+    "hashtags": [
+      "#ShopeeMall",
+      "#GiaTot",
+      "#DealMoi",
+      "#FlashSale"
+    ],
+    "priority": 4,
+    "isActive": true
+  },
+  {
+    "id": 21,
+    "hook": "🔥 Hôm nay có một deal khá hấp dẫn!",
+    "body": "✅ {title}\n\n🏪 {shop_name}\n⭐ Đánh giá: {rating}\n🛍 Đã bán: {sales}",
+    "cta": "👉 Mở link để xem thông tin đầy đủ: {link_affiliate}",
+    "hashtags": [
+      "#FlashSale",
+      "#GiaTot",
+      "#Shopee",
+      "#KhuyenMai"
+    ],
+    "priority": 4,
+    "isActive": true
+  },
+  {
+    "id": 22,
+    "hook": "💥 Mở xem trước khi ưu đãi kết thúc!",
+    "body": "✨ {title}\n\n🏪 {shop_name}\n⭐ {rating}\n🛍 Lượt bán: {sales}",
+    "cta": "👉 Click để xem sản phẩm: {link_affiliate}",
+    "hashtags": [
+      "#Shopee",
+      "#ShopeeMall",
+      "#KhuyenMai",
+      "#DealMoi"
+    ],
+    "priority": 4,
+    "isActive": true
+  },
+  {
+    "id": 23,
+    "hook": "🛍 Đừng bỏ qua deal hôm nay!",
+    "body": "✅ {title}\n\n🏪 {shop_name}\n⭐ Đánh giá: {rating}\n🛍 Đã bán: {sales}",
+    "cta": "👉 Mở link để xem thông tin đầy đủ: {link_affiliate}",
+    "hashtags": [
+      "#ShopeeMall",
+      "#Voucher",
+      "#DealMoi",
+      "#GiaTot"
+    ],
+    "priority": 1,
+    "isActive": true
+  },
+  {
+    "id": 24,
+    "hook": "⏰ Kiểm tra ngay trước khi quá muộn!",
+    "body": "📦 {title}\n\n🏪 {shop_name}\n⭐ Rating: {rating}\n🛒 Đã bán: {sales}",
+    "cta": "👉 Xem ngay: {link_affiliate}",
+    "hashtags": [
+      "#KhuyenMai",
+      "#DealHot",
+      "#FlashSale",
+      "#GiaTot"
+    ],
+    "priority": 4,
+    "isActive": true
+  },
+  {
+    "id": 25,
+    "hook": "🚀 Có thể bạn sẽ tiếc nếu bỏ qua!",
+    "body": "✨ {title}\n\n🏪 {shop_name}\n⭐ {rating}\n🛍 Lượt bán: {sales}",
+    "cta": "👉 Giá mới nhất tại đây: {link_affiliate}",
+    "hashtags": [
+      "#DealMoi",
+      "#Shopee",
+      "#KhuyenMai",
+      "#ShopeeMall"
+    ],
+    "priority": 1,
+    "isActive": true
+  },
+  {
+    "id": 26,
+    "hook": "🔥 Deal hôm nay đang rất HOT!",
+    "body": "📦 {title}\n\n🏪 {shop_name}\n⭐ Rating: {rating}\n🛒 Đã bán: {sales}",
+    "cta": "👉 Xem sản phẩm trên Shopee: {link_affiliate}",
+    "hashtags": [
+      "#DealMoi",
+      "#Voucher",
+      "#GiaTot",
+      "#Shopee"
+    ],
+    "priority": 4,
+    "isActive": true
+  },
+  {
+    "id": 27,
+    "hook": "🎁 Đừng bỏ lỡ cơ hội xem ngay!",
+    "body": "📦 {title}\n\n🏪 {shop_name}\n⭐ Rating: {rating}\n🛒 Đã bán: {sales}",
+    "cta": "👉 Xem sản phẩm trên Shopee: {link_affiliate}",
+    "hashtags": [
+      "#Shopee",
+      "#ShopeeMall",
+      "#DealHot",
+      "#DealMoi"
+    ],
+    "priority": 1,
+    "isActive": true
+  },
+  {
+    "id": 28,
+    "hook": "⚡ Giá hiện tại đáng để kiểm tra!",
+    "body": "📦 {title}\n\n🏪 {shop_name}\n⭐ Rating: {rating}\n🛒 Đã bán: {sales}",
+    "cta": "👉 Xem chi tiết tại đây: {link_affiliate}",
+    "hashtags": [
+      "#ShopeeMall",
+      "#DealMoi",
+      "#GiaTot",
+      "#Shopee"
+    ],
+    "priority": 5,
+    "isActive": true
+  },
+  {
+    "id": 29,
+    "hook": "💥 Mở xem ngay khi còn ưu đãi!",
+    "body": "✨ {title}\n\n🏪 {shop_name}\n⭐ {rating}\n🛍 Lượt bán: {sales}",
+    "cta": "👉 Link sản phẩm: {link_affiliate}",
+    "hashtags": [
+      "#DealMoi",
+      "#FlashSale",
+      "#ShopeeMall",
+      "#GiaTot"
+    ],
+    "priority": 2,
+    "isActive": true
+  },
+  {
+    "id": 30,
+    "hook": "🛍 Deal này đang được săn khá nhiều!",
+    "body": "📦 {title}\n\n🏪 {shop_name}\n⭐ Rating: {rating}\n🛒 Đã bán: {sales}",
+    "cta": "👉 Click để xem sản phẩm: {link_affiliate}",
+    "hashtags": [
+      "#FlashSale",
+      "#DealHot",
+      "#DealMoi",
+      "#GiaTot"
+    ],
+    "priority": 1,
+    "isActive": true
+  },
+  {
+    "id": 31,
+    "hook": "🔥 Deal hôm nay đáng để mở xem!",
+    "body": "📦 {title}\n\n🏪 {shop_name}\n⭐ Rating: {rating}\n🛒 Đã bán: {sales}",
+    "cta": "👉 Xem ưu đãi hôm nay: {link_affiliate}",
+    "hashtags": [
+      "#DealMoi",
+      "#GiaTot",
+      "#Shopee",
+      "#KhuyenMai"
+    ],
+    "priority": 3,
+    "isActive": true
+  },
+  {
+    "id": 32,
+    "hook": "⏰ Xem trước khi mức giá thay đổi!",
+    "body": "✅ {title}\n\n🏪 {shop_name}\n⭐ Đánh giá: {rating}\n🛍 Đã bán: {sales}",
+    "cta": "👉 Click để xem sản phẩm: {link_affiliate}",
+    "hashtags": [
+      "#GiaTot",
+      "#DealMoi",
+      "#ShopeeMall",
+      "#KhuyenMai"
+    ],
+    "priority": 4,
+    "isActive": true
+  },
+  {
+    "id": 33,
+    "hook": "🚀 Đừng bỏ qua ưu đãi hôm nay!",
+    "body": "✅ {title}\n\n🏪 {shop_name}\n⭐ Đánh giá: {rating}\n🛍 Đã bán: {sales}",
+    "cta": "👉 Link sản phẩm: {link_affiliate}",
+    "hashtags": [
+      "#FlashSale",
+      "#DealHot",
+      "#DealMoi",
+      "#ShopeeMall"
+    ],
+    "priority": 5,
+    "isActive": true
+  },
+  {
+    "id": 34,
+    "hook": "🎁 Kiểm tra ngay khi còn giá hiện tại!",
+    "body": "✨ {title}\n\n🏪 {shop_name}\n⭐ {rating}\n🛍 Lượt bán: {sales}",
+    "cta": "👉 Click để xem sản phẩm: {link_affiliate}",
+    "hashtags": [
+      "#GiaTot",
+      "#Shopee",
+      "#FlashSale",
+      "#KhuyenMai"
+    ],
+    "priority": 3,
+    "isActive": true
+  },
+  {
+    "id": 35,
+    "hook": "⚡ Mở xem vì deal này rất đáng chú ý!",
+    "body": "✅ {title}\n\n🏪 {shop_name}\n⭐ Đánh giá: {rating}\n🛍 Đã bán: {sales}",
+    "cta": "👉 Kiểm tra voucher mới nhất: {link_affiliate}",
+    "hashtags": [
+      "#Shopee",
+      "#KhuyenMai",
+      "#DealMoi",
+      "#FlashSale"
+    ],
+    "priority": 1,
+    "isActive": true
+  },
+  {
+    "id": 36,
+    "hook": "🔥 Có thể đây là deal bạn đang chờ!",
+    "body": "✅ {title}\n\n🏪 {shop_name}\n⭐ Đánh giá: {rating}\n🛍 Đã bán: {sales}",
+    "cta": "👉 Xem đánh giá của khách hàng: {link_affiliate}",
+    "hashtags": [
+      "#ShopeeMall",
+      "#KhuyenMai",
+      "#FlashSale",
+      "#DealHot"
+    ],
+    "priority": 1,
+    "isActive": true
+  },
+  {
+    "id": 37,
+    "hook": "💥 Đừng để lỡ deal nổi bật hôm nay!",
+    "body": "✨ {title}\n\n🏪 {shop_name}\n⭐ {rating}\n🛍 Lượt bán: {sales}",
+    "cta": "👉 Mở link để xem thông tin đầy đủ: {link_affiliate}",
+    "hashtags": [
+      "#DealHot",
+      "#Shopee",
+      "#KhuyenMai",
+      "#GiaTot"
+    ],
+    "priority": 1,
+    "isActive": true
+  },
+  {
+    "id": 38,
+    "hook": "🛍 Mở xem ngay trước khi deal thay đổi!",
+    "body": "✅ {title}\n\n🏪 {shop_name}\n⭐ Đánh giá: {rating}\n🛍 Đã bán: {sales}",
+    "cta": "👉 Giá mới nhất tại đây: {link_affiliate}",
+    "hashtags": [
+      "#KhuyenMai",
+      "#DealHot",
+      "#Shopee",
+      "#FlashSale"
+    ],
+    "priority": 5,
+    "isActive": true
+  },
+  {
+    "id": 39,
+    "hook": "⏰ Giá có thể thay đổi bất cứ lúc nào!",
+    "body": "✨ {title}\n\n🏪 {shop_name}\n⭐ {rating}\n🛍 Lượt bán: {sales}",
+    "cta": "👉 Xem ưu đãi hôm nay: {link_affiliate}",
+    "hashtags": [
+      "#Voucher",
+      "#DealMoi",
+      "#KhuyenMai",
+      "#Shopee"
+    ],
+    "priority": 5,
+    "isActive": true
+  },
+  {
+    "id": 40,
+    "hook": "🚀 Hôm nay là thời điểm đáng để xem!",
+    "body": "📦 {title}\n\n🏪 {shop_name}\n⭐ Rating: {rating}\n🛒 Đã bán: {sales}",
+    "cta": "👉 Giá mới nhất tại đây: {link_affiliate}",
+    "hashtags": [
+      "#Voucher",
+      "#DealMoi",
+      "#FlashSale",
+      "#KhuyenMai"
+    ],
+    "priority": 4,
+    "isActive": true
+  },
+  {
+    "id": 41,
+    "hook": "🔥 Deal hôm nay đang rất nổi bật!",
+    "body": "✨ {title}\n\n🏪 {shop_name}\n⭐ {rating}\n🛍 Lượt bán: {sales}",
+    "cta": "👉 Kiểm tra voucher mới nhất: {link_affiliate}",
+    "hashtags": [
+      "#GiaTot",
+      "#ShopeeMall",
+      "#DealMoi",
+      "#KhuyenMai"
+    ],
+    "priority": 3,
+    "isActive": true
+  },
+  {
+    "id": 42,
+    "hook": "🎁 Mở xem ngay để không bỏ lỡ!",
+    "body": "✨ {title}\n\n🏪 {shop_name}\n⭐ {rating}\n🛍 Lượt bán: {sales}",
+    "cta": "👉 Xem ngay: {link_affiliate}",
+    "hashtags": [
+      "#Shopee",
+      "#KhuyenMai",
+      "#FlashSale",
+      "#DealMoi"
+    ],
+    "priority": 1,
+    "isActive": true
+  },
+  {
+    "id": 43,
+    "hook": "⚡ Kiểm tra ngay trước khi giá thay đổi!",
+    "body": "✨ {title}\n\n🏪 {shop_name}\n⭐ {rating}\n🛍 Lượt bán: {sales}",
+    "cta": "👉 Xem ưu đãi hôm nay: {link_affiliate}",
+    "hashtags": [
+      "#Voucher",
+      "#FlashSale",
+      "#DealHot",
+      "#GiaTot"
+    ],
+    "priority": 3,
+    "isActive": true
+  },
+  {
+    "id": 44,
+    "hook": "💥 Deal này đáng để bạn xem thử!",
+    "body": "📦 {title}\n\n🏪 {shop_name}\n⭐ Rating: {rating}\n🛒 Đã bán: {sales}",
+    "cta": "👉 Xem chi tiết tại đây: {link_affiliate}",
+    "hashtags": [
+      "#Shopee",
+      "#FlashSale",
+      "#DealHot",
+      "#ShopeeMall"
+    ],
+    "priority": 5,
+    "isActive": true
+  },
+  {
+    "id": 45,
+    "hook": "🛍 Ưu đãi hôm nay đang rất đáng chú ý!",
+    "body": "📦 {title}\n\n🏪 {shop_name}\n⭐ Rating: {rating}\n🛒 Đã bán: {sales}",
+    "cta": "👉 Link sản phẩm: {link_affiliate}",
+    "hashtags": [
+      "#FlashSale",
+      "#Shopee",
+      "#Voucher",
+      "#KhuyenMai"
+    ],
+    "priority": 4,
+    "isActive": true
+  },
+  {
+    "id": 46,
+    "hook": "🔥 Xem ngay khi deal vẫn còn!",
+    "body": "✨ {title}\n\n🏪 {shop_name}\n⭐ {rating}\n🛍 Lượt bán: {sales}",
+    "cta": "👉 Mở link để xem thông tin đầy đủ: {link_affiliate}",
+    "hashtags": [
+      "#Voucher",
+      "#ShopeeMall",
+      "#DealHot",
+      "#Shopee"
+    ],
+    "priority": 4,
+    "isActive": true
+  },
+  {
+    "id": 47,
+    "hook": "🚀 Đừng bỏ lỡ deal đang HOT!",
+    "body": "📦 {title}\n\n🏪 {shop_name}\n⭐ Rating: {rating}\n🛒 Đã bán: {sales}",
+    "cta": "👉 Giá mới nhất tại đây: {link_affiliate}",
+    "hashtags": [
+      "#FlashSale",
+      "#KhuyenMai",
+      "#ShopeeMall",
+      "#Shopee"
+    ],
+    "priority": 4,
+    "isActive": true
+  },
+  {
+    "id": 48,
+    "hook": "🎁 Mở xem ngay trước khi ưu đãi thay đổi!",
+    "body": "📦 {title}\n\n🏪 {shop_name}\n⭐ Rating: {rating}\n🛒 Đã bán: {sales}",
+    "cta": "👉 Mở link để xem thông tin đầy đủ: {link_affiliate}",
+    "hashtags": [
+      "#GiaTot",
+      "#DealHot",
+      "#Voucher",
+      "#Shopee"
+    ],
+    "priority": 3,
+    "isActive": true
+  },
+  {
+    "id": 49,
+    "hook": "⚡ Kiểm tra ngay trước khi bỏ lỡ!",
+    "body": "✨ {title}\n\n🏪 {shop_name}\n⭐ {rating}\n🛍 Lượt bán: {sales}",
+    "cta": "👉 Xem ưu đãi hôm nay: {link_affiliate}",
+    "hashtags": [
+      "#GiaTot",
+      "#DealMoi",
+      "#DealHot",
+      "#Voucher"
+    ],
+    "priority": 1,
+    "isActive": true
+  },
+  {
+    "id": 50,
+    "hook": "💥 Deal hôm nay rất đáng để bạn xem!",
+    "body": "✨ {title}\n\n🏪 {shop_name}\n⭐ {rating}\n🛍 Lượt bán: {sales}",
+    "cta": "👉 Xem ngay: {link_affiliate}",
+    "hashtags": [
+      "#FlashSale",
+      "#DealMoi",
+      "#Shopee",
+      "#KhuyenMai"
+    ],
+    "priority": 2,
+    "isActive": true
+  }
+]

@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="facebookpost.client/facebookpost.client.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="FacebookPost.Server/FacebookPost.Server.csproj" />
+</Solution>
