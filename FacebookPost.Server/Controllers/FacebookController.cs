@@ -21,6 +21,14 @@ namespace FacebookPost.Server.Controllers
             _shopeeLinkService = shopeeLinkService;
         }
 
+        [HttpPost("publish-all")]
+        public async Task<IActionResult> PublishAll()
+        {
+            var result = await _facebookService.ProcessCreatePostToAllFacebookPages();
+
+            return Ok(result);
+        }
+
         [HttpPost("pages/{pageId}/publish")]
         public async Task<IActionResult> Publish(string pageId)
         {

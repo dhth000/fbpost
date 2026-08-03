@@ -1,7 +1,11 @@
 
 using FacebookPost.Server.Builder;
+using FacebookPost.Server.Helper;
 using FacebookPost.Server.Model;
+using FacebookPost.Server.Providers;
+using FacebookPost.Server.SchedulerJobs;
 using FacebookPost.Server.Service;
+using Quartz;
 
 namespace FacebookPost.Server
 {
@@ -25,6 +29,32 @@ namespace FacebookPost.Server
             builder.Services.AddScoped<IFacebookService, FacebookService>();
             builder.Services.AddScoped<IProductDataService, ProductDataService>();
             builder.Services.AddScoped<IShopeeLinkService, ShopeeLinkService>();
+            builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+
+            builder.Services.AddQuartz(q =>
+            {
+                var jobKey = new JobKey("PublishAllFacebook");
+
+                q.AddJob<PublishAllFacebookJob>(options =>
+                {
+                    options.WithIdentity(jobKey);
+                });
+
+                q.AddTrigger(options =>
+                {
+                    options
+                        .ForJob(jobKey)
+                        .WithIdentity("PublishAllFacebookTrigger")
+                        .WithCronSchedule(
+                            "0 2 22 * * ?",
+                            x => x.InTimeZone(TimeHelper.TimeZone));
+                });
+            });
+
+            builder.Services.AddQuartzHostedService(options =>
+            {
+                options.WaitForJobsToComplete = true;
+            });
 
             var app = builder.Build();
 
@@ -40,7 +70,6 @@ namespace FacebookPost.Server
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 

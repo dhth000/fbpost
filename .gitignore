@@ -10,3 +10,6 @@ facebookpost.client/obj/Debug/package.g.props
 .vs/FacebookPost.slnx/v18/DocumentLayout.backup.json
 .vs/FacebookPost.slnx/v18/DocumentLayout.json
 .vs/
+/facebookpost.client/obj/Release/*.cache
+/facebookpost.client/obj/Release/*.txt
+/facebookpost.client/obj/Release/*.props

@@ -3,5 +3,7 @@
     public interface IFacebookService
     {
         Task<string> ProcessCreatePostToFacebook(string downloadUrl);
+
+        Task<string> ProcessCreatePostToAllFacebookPages();
     }
 }

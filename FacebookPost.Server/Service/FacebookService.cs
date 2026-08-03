@@ -2,6 +2,7 @@
 using FacebookPost.Server.Builder;
 using FacebookPost.Server.Model;
 using FacebookPost.Server.Options;
+using FacebookPost.Server.Providers;
 using System.Text.Json;
 
 namespace FacebookPost.Server.Service
@@ -11,11 +12,13 @@ namespace FacebookPost.Server.Service
         private readonly HttpClient _httpClient;
         private readonly FacebookOptions _facebookOptions;
         private readonly IFacebookPostBuilder _facebookPostBuilder;
+        private readonly IDateTimeProvider _dateTimeProvider;
 
-        public FacebookService(HttpClient httpClient, IConfiguration configuration, IFacebookPostBuilder facebookPostBuilder)
+        public FacebookService(HttpClient httpClient, IConfiguration configuration, IFacebookPostBuilder facebookPostBuilder, IDateTimeProvider dateTimeProvider)
         {
             _httpClient = httpClient;
             _facebookPostBuilder = facebookPostBuilder;
+            _dateTimeProvider = dateTimeProvider;
             _facebookOptions = configuration.GetSection("Facebook").Get<FacebookOptions>()!;
         }
 
@@ -30,6 +33,7 @@ namespace FacebookPost.Server.Service
             var productsPost = GetProductsPost(shopeeData);
             if (productsPost == null || productsPost.Count == 0) return "No valid products found.";
 
+            var now = _dateTimeProvider.VietnamNow;
             var result = string.Empty;
 
             foreach (var (index, product) in productsPost.Select((x, i) => (i, x)))
@@ -48,15 +52,18 @@ namespace FacebookPost.Server.Service
                     imageFiles.Add(await DownloadImageAsync(imageUrl));
                 }
 
-                var publishTime = GetRandomPublishTime(index);
+                var publishTime = GetRandomPublishTime(now, index);
+
+                if (publishTime <= now)
+                {
+                    publishTime = publishTime.AddDays(1);
+                }
 
                 await PublishFacebookPostAsync(
                     page,
                     imageFiles,
                     postContent,
-                    publishTime <= DateTime.Now
-                        ? publishTime.AddDays(1)
-                        : publishTime);
+                    publishTime);
 
                 foreach (var file in imageFiles)
                 {
@@ -64,10 +71,28 @@ namespace FacebookPost.Server.Service
                         File.Delete(file);
                 }
 
-                result += $"\nProcessed product {product.Title} successfully.\n";
+                result += $"\n[{pageId}] Processed product: {product.Title} -> successfully.\n";
             }
 
             return result;
+        }
+
+        public async Task<string> ProcessCreatePostToAllFacebookPages()
+        {
+            if (_facebookOptions.Pages == null || !_facebookOptions.Pages.Any())
+            {
+                return "No Facebook pages configured.";
+            }
+
+            var startTimes = GenerateStartTimes(_dateTimeProvider.VietnamNow, _facebookOptions.Pages.Count);
+
+            var tasks = _facebookOptions.Pages
+                .Select((page, index) =>
+                    ProcessFacebookPageAsync(page, startTimes[index]));
+
+            var results = await Task.WhenAll(tasks);
+
+            return string.Join(Environment.NewLine, results);
         }
 
         private async Task PublishFacebookPostAsync(FacebookPageOption page, List<string> imageFiles, string message, DateTime publishTime)
@@ -96,10 +121,67 @@ namespace FacebookPost.Server.Service
                 publishTime);
         }
 
+        private async Task<string> ProcessFacebookPageAsync(FacebookPageOption page, DateTime startTime)
+        {
+            try
+            {
+                var now = _dateTimeProvider.VietnamNow;
+
+                var delay = startTime - now;
+
+                if (delay > TimeSpan.Zero)
+                {
+                    await Task.Delay(delay);
+                }
+
+                return await ProcessCreatePostToFacebook(page.PageId);
+            }
+            catch (Exception ex)
+            {
+                return $"[{page.Name}] ERROR: {ex.Message}";
+            }
+        }
+
+        private List<DateTime> GenerateStartTimes(DateTime now, int pageCount)
+        {
+            var start = now.Date.AddHours(22).AddMinutes(05);
+            var end = now.Date.AddHours(22).AddMinutes(30);
+
+            // Sau 23:15 thì chạy ngay toàn bộ
+            if (now >= end)
+            {
+                return Enumerable.Repeat(now, pageCount).ToList();
+            }
+
+            // Nếu đã qua 22:15 thì random từ thời điểm hiện tại
+            if (now > start)
+            {
+                start = now;
+            }
+
+            var totalSeconds = (int)(end - start).TotalSeconds;
+
+            if (totalSeconds <= 0)
+            {
+                return Enumerable.Repeat(now, pageCount).ToList();
+            }
+
+            // Không để vượt quá số giây có thể random
+            pageCount = Math.Min(pageCount, totalSeconds + 1);
+
+            var randomSeconds = Enumerable.Range(0, totalSeconds + 1)
+                .OrderBy(_ => Random.Shared.Next())
+                .Take(pageCount)
+                .OrderBy(x => x);
+
+            return randomSeconds
+                .Select(x => start.AddSeconds(x))
+                .ToList();
+        }
+
         private async Task<string> UploadPhotoAsync(FacebookPageOption page, string imagePath)
         {
-            var url =
-                $"https://graph.facebook.com/{page.GraphVersion}/{page.PageId}/photos";
+            var url = $"https://graph.facebook.com/{page.GraphVersion}/{page.PageId}/photos";
 
             using var form = new MultipartFormDataContent();
 
@@ -153,13 +235,9 @@ namespace FacebookPost.Server.Service
                 new StringContent("false"),
                 "published");
 
-            var unixTime =
-                new DateTimeOffset(publishTime)
-                    .ToUnixTimeSeconds();
+            var unixTime = _dateTimeProvider.ToUnixTimeSeconds(publishTime);
 
-            form.Add(
-                new StringContent(unixTime.ToString()),
-                "scheduled_publish_time");
+            form.Add(new StringContent(unixTime.ToString()),"scheduled_publish_time");
 
             for (int i = 0; i < mediaIds.Count; i++)
             {
@@ -274,10 +352,9 @@ namespace FacebookPost.Server.Service
             return fullPath;
         }
 
-        private DateTime GetRandomPublishTime(int index)
+        private DateTime GetRandomPublishTime(DateTime today, int index)
         {
             var random = Random.Shared;
-            var today = DateTime.Today;
 
             int[] TimeSlots =
             {
@@ -293,19 +370,19 @@ namespace FacebookPost.Server.Service
 
             return slot switch
             {
-                0 => today
+                0 => today.Date
                     .AddHours(7)
                     .AddMinutes(random.Next(0, 91)),          // 07:00 - 08:30
 
-                1 => today
+                1 => today.Date
                     .AddHours(11)
                     .AddMinutes(30 + random.Next(0, 91)),     // 11:30 - 13:00
 
-                2 => today
+                2 => today.Date
                     .AddHours(19)
                     .AddMinutes(random.Next(0, 91)),          // 19:00 - 20:30
 
-                3 => today
+                3 => today.Date
                     .AddHours(20)
                     .AddMinutes(30 + random.Next(0, 91)),     // 20:30 - 22:00
 
