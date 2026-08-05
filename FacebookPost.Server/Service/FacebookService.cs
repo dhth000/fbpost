@@ -3,7 +3,11 @@ using FacebookPost.Server.Builder;
 using FacebookPost.Server.Model;
 using FacebookPost.Server.Options;
 using FacebookPost.Server.Providers;
+using Newtonsoft.Json.Linq;
+using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
+using System.Net.Http.Headers;
 
 namespace FacebookPost.Server.Service
 {
@@ -13,6 +17,8 @@ namespace FacebookPost.Server.Service
         private readonly FacebookOptions _facebookOptions;
         private readonly IFacebookPostBuilder _facebookPostBuilder;
         private readonly IDateTimeProvider _dateTimeProvider;
+
+        private static readonly Random _rng = new Random();
 
         public FacebookService(HttpClient httpClient, IConfiguration configuration, IFacebookPostBuilder facebookPostBuilder, IDateTimeProvider dateTimeProvider)
         {
@@ -59,19 +65,45 @@ namespace FacebookPost.Server.Service
                     publishTime = publishTime.AddDays(1);
                 }
 
-                await PublishFacebookPostAsync(
-                    page,
-                    imageFiles,
-                    postContent,
-                    publishTime);
+                // ----- 1. Tạo Post -----
+                try
+                {
+                    await PublishFacebookPostAsync(
+                        page,
+                        imageFiles,
+                        postContent,
+                        publishTime);
+
+                    result += $"\n[{pageId}] Processed product: {product.Title} -> Post created successfully.\n";
+                }
+                catch (Exception ex)
+                {
+                    result += $"\n[{pageId}] Failed to create Post for product: {product.Title} -> {ex.Message}\n";
+                }
+
+                // -----2.Tạo Reel(dùng chung ảnh vừa tải, lệch giờ đăng để không trùng Post)---- -
+                try
+                {
+                    var reelPublishTime = publishTime.AddMinutes(15); // tránh trùng giờ với Post, tùy chỉnh nếu cần
+
+                    var reelResult = await PublishFacebookReelAsync(
+                        page,
+                        imageFiles,
+                        postContent,
+                        reelPublishTime);
+
+                    result += $"[{pageId}] Processed product: {product.Title} -> {reelResult}\n";
+                }
+                catch (Exception ex)
+                {
+                    result += $"[{pageId}] Failed to create Reel for product: {product.Title} -> {ex.Message}\n";
+                }
 
                 foreach (var file in imageFiles)
                 {
                     if (File.Exists(file))
                         File.Delete(file);
                 }
-
-                result += $"\n[{pageId}] Processed product: {product.Title} -> successfully.\n";
             }
 
             return result;
@@ -93,6 +125,180 @@ namespace FacebookPost.Server.Service
             var results = await Task.WhenAll(tasks);
 
             return string.Join(Environment.NewLine, results);
+        }
+
+        // 3. Publish Reel lên Facebook (start -> upload -> finish)
+        public async Task<string> PublishFacebookReelAsync(
+            FacebookPageOption page,
+            List<string> imageFiles,
+            string postContent,
+            DateTime publishTime)
+        {
+            string reelVideoPath = null;
+
+            try
+            {
+                var musicFile = GetRandomMusicFile();
+                reelVideoPath = await CreateReelVideoAsync(imageFiles, musicFile);
+
+                using var httpClient = new HttpClient();
+                var apiVersion = page.GraphVersion ?? "v19.0";
+                var baseUrl = $"https://graph.facebook.com/{apiVersion}/{page.PageId}/video_reels";
+
+                // --- Phase 1: START ---
+                var startResp = await httpClient.PostAsync(
+                    $"{baseUrl}?upload_phase=start&access_token={page.AccessToken}",
+                    null);
+                var startJson = JObject.Parse(await startResp.Content.ReadAsStringAsync());
+
+                if (!startResp.IsSuccessStatusCode)
+                    throw new Exception($"Start phase failed: {startJson}");
+
+                var videoId = startJson["video_id"]!.ToString();
+                var uploadUrl = startJson["upload_url"]!.ToString();
+
+                // --- Phase 2: UPLOAD binary video lên uploadUrl ---
+                var fileBytes = await File.ReadAllBytesAsync(reelVideoPath);
+                using var uploadRequest = new HttpRequestMessage(HttpMethod.Post, uploadUrl);
+                uploadRequest.Headers.Add("Authorization", $"OAuth {page.AccessToken}");
+                uploadRequest.Headers.Add("offset", "0");
+                uploadRequest.Headers.Add("file_size", fileBytes.Length.ToString());
+                uploadRequest.Content = new ByteArrayContent(fileBytes);
+                uploadRequest.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+
+                var uploadResp = await httpClient.SendAsync(uploadRequest);
+                if (!uploadResp.IsSuccessStatusCode)
+                    throw new Exception($"Upload phase failed: {await uploadResp.Content.ReadAsStringAsync()}");
+
+                // --- Phase 3: FINISH (publish hoặc schedule) ---
+                var scheduledTimestamp = _dateTimeProvider.ToUnixTimeSeconds(publishTime);
+
+                var finishParams = new Dictionary<string, string>
+                {
+                    ["upload_phase"] = "finish",
+                    ["video_id"] = videoId,
+                    ["description"] = postContent,
+                    ["video_state"] = "SCHEDULED",
+                    ["scheduled_publish_time"] = scheduledTimestamp.ToString(),
+                    ["access_token"] = page.AccessToken
+                };
+
+                var finishResp = await httpClient.PostAsync(baseUrl, new FormUrlEncodedContent(finishParams));
+                var finishJson = await finishResp.Content.ReadAsStringAsync();
+
+                if (!finishResp.IsSuccessStatusCode)
+                    throw new Exception($"Finish phase failed: {finishJson}");
+
+                return $"[{page.PageId}] Reel published successfully. VideoId: {videoId}, ScheduledAt: {publishTime}";
+            }
+            finally
+            {
+                // Dọn file tạm
+                if (reelVideoPath != null && File.Exists(reelVideoPath))
+                    File.Delete(reelVideoPath);
+            }
+        }
+
+        // 1. Lấy random 1 file nhạc trong khoảng 1.mp4 -> 49.mp4, trong thư mục Musics của project
+        private string GetRandomMusicFile()
+        {
+            // AppContext.BaseDirectory = thư mục chứa file .dll/.exe khi chạy (thường là bin/Debug/net.../)
+            var musicFolder = Path.Combine(AppContext.BaseDirectory, "Musics");
+
+            if (!Directory.Exists(musicFolder))
+                throw new DirectoryNotFoundException($"Music folder not found: {musicFolder}");
+
+            var index = _rng.Next(1, 50); // 1 -> 49
+            var musicPath = Path.Combine(musicFolder, $"{index}.mp4");
+
+            if (!File.Exists(musicPath))
+                throw new FileNotFoundException($"Music file not found: {musicPath}");
+
+            return musicPath;
+        }
+
+        // 1b. Lấy đường dẫn ffmpeg.exe đóng gói sẵn trong project (không cần cài trên máy)
+        private string GetFfmpegExecutablePath()
+        {
+            string relativePath;
+
+            if (OperatingSystem.IsWindows())
+            {
+                relativePath = Path.Combine("ffmpeg", "win-x64", "ffmpeg.exe");
+            }
+            else if (OperatingSystem.IsLinux())
+            {
+                relativePath = Path.Combine("ffmpeg", "linux-x64", "ffmpeg");
+            }
+            else
+            {
+                throw new PlatformNotSupportedException(
+                    "Chỉ hỗ trợ chạy ffmpeg trên Windows hoặc Linux.");
+            }
+
+            var path = Path.Combine(AppContext.BaseDirectory, relativePath);
+
+            if (!File.Exists(path))
+                throw new FileNotFoundException(
+                    $"FFmpeg not found. Expected at: {path}. " +
+                    $"Hãy copy file ffmpeg vào thư mục '{relativePath}' trong project.");
+
+            return path;
+        }
+
+        // 2. Ghép ảnh sản phẩm + nhạc thành video reel bằng FFmpeg
+        private async Task<string> CreateReelVideoAsync(List<string> imageFiles, string musicFile)
+        {
+            var outputPath = Path.Combine(Path.GetTempPath(), $"reel_{Guid.NewGuid()}.mp4");
+
+            // Tạo file danh sách ảnh cho ffmpeg concat (mỗi ảnh hiển thị vài giây)
+            var listFilePath = Path.Combine(Path.GetTempPath(), $"list_{Guid.NewGuid()}.txt");
+            var sb = new StringBuilder();
+            const double durationPerImage = 5.0; // giây / ảnh
+
+            foreach (var img in imageFiles)
+            {
+                sb.AppendLine($"file '{img.Replace("\\", "/")}'");
+                sb.AppendLine($"duration {durationPerImage}");
+            }
+            // ffmpeg yêu cầu lặp lại file cuối để duration cuối có hiệu lực
+            sb.AppendLine($"file '{imageFiles.Last().Replace("\\", "/")}'");
+            await File.WriteAllTextAsync(listFilePath, sb.ToString());
+
+            // ffmpeg: ghép ảnh thành video (silent), scale cho đúng tỉ lệ 9:16, sau đó mux với audio
+            var args = $"-y -f concat -safe 0 -i \"{listFilePath}\" " +
+                       $"-i \"{musicFile}\" " +
+                       $"-vf \"scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1\" " +
+                       $"-c:v libx264 -pix_fmt yuv420p -r 30 " +
+                       $"-c:a aac -shortest -map 0:v:0 -map 1:a:0 " +
+                       $"\"{outputPath}\"";
+
+            var psi = new ProcessStartInfo
+            {
+                FileName = GetFfmpegExecutablePath(), // thay vì "ffmpeg" -> trỏ đúng file đóng gói sẵn
+                Arguments = args,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                WorkingDirectory = AppContext.BaseDirectory
+            };
+
+            using var process = Process.Start(psi)
+                ?? throw new InvalidOperationException("Không thể khởi động ffmpeg process.");
+
+            var stdErrTask = process.StandardError.ReadToEndAsync();
+            await process.WaitForExitAsync();
+
+            File.Delete(listFilePath);
+
+            if (process.ExitCode != 0 || !File.Exists(outputPath))
+            {
+                var stderr = await stdErrTask;
+                throw new Exception($"FFmpeg failed (ExitCode={process.ExitCode}). Chi tiết: {stderr}");
+            }
+
+            return outputPath;
         }
 
         private async Task PublishFacebookPostAsync(FacebookPageOption page, List<string> imageFiles, string message, DateTime publishTime)
@@ -153,7 +359,7 @@ namespace FacebookPost.Server.Service
                 return Enumerable.Repeat(now, pageCount).ToList();
             }
 
-            // Nếu đã qua 22:15 thì random từ thời điểm hiện tại
+            // Nếu đã qua 22:05 thì random từ thời điểm hiện tại
             if (now > start)
             {
                 start = now;
