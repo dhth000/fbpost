@@ -144,7 +144,7 @@ namespace FacebookPost.Server.Model
 
             using var playwright = await Playwright.CreateAsync();
 
-            var browser = await playwright.Chromium.ConnectOverCDPAsync("http://127.0.0.1:9222");
+            var browser = await playwright.Chromium.ConnectOverCDPAsync("http://localhost:9222");
 
             var context = browser.Contexts.First();
 

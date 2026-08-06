@@ -84,7 +84,7 @@ namespace FacebookPost.Server.Service
                 // -----2.Tạo Reel(dùng chung ảnh vừa tải, lệch giờ đăng để không trùng Post)---- -
                 try
                 {
-                    var reelPublishTime = publishTime.AddMinutes(15); // tránh trùng giờ với Post, tùy chỉnh nếu cần
+                    var reelPublishTime = publishTime.AddMinutes(Random.Shared.Next(10, 20)); // tránh trùng giờ với Post, tùy chỉnh nếu cần
 
                     var reelResult = await PublishFacebookReelAsync(
                         page,
@@ -351,7 +351,7 @@ namespace FacebookPost.Server.Service
         private List<DateTime> GenerateStartTimes(DateTime now, int pageCount)
         {
             var start = now.Date.AddHours(22).AddMinutes(05);
-            var end = now.Date.AddHours(22).AddMinutes(30);
+            var end = now.Date.AddHours(22).AddMinutes(35);
 
             // Sau 23:15 thì chạy ngay toàn bộ
             if (now >= end)
@@ -429,17 +429,11 @@ namespace FacebookPost.Server.Service
 
             using var form = new MultipartFormDataContent();
 
-            form.Add(
-                new StringContent(page.AccessToken),
-                "access_token");
+            form.Add(new StringContent(page.AccessToken), "access_token");
 
-            form.Add(
-                new StringContent(message),
-                "message");
+            form.Add(new StringContent(message), "message");
 
-            form.Add(
-                new StringContent("false"),
-                "published");
+            form.Add(new StringContent("false"), "published");
 
             var unixTime = _dateTimeProvider.ToUnixTimeSeconds(publishTime);
 
@@ -458,19 +452,16 @@ namespace FacebookPost.Server.Service
                     $"attached_media[{i}]");
             }
 
-            using var response =
-                await _httpClient.PostAsync(url, form);
+            using var response = await _httpClient.PostAsync(url, form);
 
-            var json =
-                await response.Content.ReadAsStringAsync();
+            var json = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
             {
                 throw new Exception(json);
             }
 
-            var result =
-                JsonSerializer.Deserialize<FacebookPostResponse>(json)!;
+            var result = JsonSerializer.Deserialize<FacebookPostResponse>(json)!;
 
             Console.WriteLine($"Facebook PostId : {result.Id}");
         }

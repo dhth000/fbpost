@@ -3,6 +3,7 @@ using Quartz;
 
 namespace FacebookPost.Server.SchedulerJobs
 {
+    [DisallowConcurrentExecution]
     public class PublishAllFacebookJob : IJob
     {
         private readonly IFacebookService _facebookService;
