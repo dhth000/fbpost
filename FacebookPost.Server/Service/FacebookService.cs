@@ -18,6 +18,9 @@ namespace FacebookPost.Server.Service
         private readonly IFacebookPostBuilder _facebookPostBuilder;
         private readonly IDateTimeProvider _dateTimeProvider;
 
+        // Thời gian tối đa cho 1 lần ffmpeg tạo reel, quá thời gian sẽ kill process để job không bị treo
+        private static readonly TimeSpan FfmpegTimeout = TimeSpan.FromMinutes(5);
+
         private static readonly Random _rng = new Random();
 
         public FacebookService(HttpClient httpClient, IConfiguration configuration, IFacebookPostBuilder facebookPostBuilder, IDateTimeProvider dateTimeProvider)
@@ -53,57 +56,62 @@ namespace FacebookPost.Server.Service
 
                 var imageFiles = new List<string>();
 
-                foreach (var imageUrl in imageUrls)
-                {
-                    imageFiles.Add(await DownloadImageAsync(imageUrl));
-                }
-
-                var publishTime = GetRandomPublishTime(now, index);
-
-                if (publishTime <= now)
-                {
-                    publishTime = publishTime.AddDays(1);
-                }
-
-                // ----- 1. Tạo Post -----
                 try
                 {
-                    await PublishFacebookPostAsync(
-                        page,
-                        imageFiles,
-                        postContent,
-                        publishTime);
+                    foreach (var imageUrl in imageUrls)
+                    {
+                        imageFiles.Add(await DownloadImageAsync(imageUrl));
+                    }
 
-                    result += $"\n[{pageId}] Processed product: {product.Title} -> Post created successfully.\n";
+                    var publishTime = GetRandomPublishTime(now, index);
+
+                    if (publishTime <= now)
+                    {
+                        publishTime = publishTime.AddDays(1);
+                    }
+
+                    // ----- 1. Tạo Post -----
+                    try
+                    {
+                        await PublishFacebookPostAsync(
+                            page,
+                            imageFiles,
+                            postContent,
+                            publishTime);
+
+                        result += $"\n[{pageId}] Processed product: {product.Title} -> Post created successfully.\n";
+                    }
+                    catch (Exception ex)
+                    {
+                        result += $"\n[{pageId}] Failed to create Post for product: {product.Title} -> {ex.Message}\n";
+                    }
+
+                    // -----2.Tạo Reel(dùng chung ảnh vừa tải, lệch giờ đăng để không trùng Post)---- -
+                    try
+                    {
+                        var reelPublishTime = publishTime.AddMinutes(Random.Shared.Next(10, 20)); // tránh trùng giờ với Post, tùy chỉnh nếu cần
+
+                        var reelResult = await PublishFacebookReelAsync(
+                            page,
+                            imageFiles,
+                            postContent,
+                            reelPublishTime);
+
+                        result += $"[{pageId}] Processed product: {product.Title} -> {reelResult}\n";
+                    }
+                    catch (Exception ex)
+                    {
+                        result += $"[{pageId}] Failed to create Reel for product: {product.Title} -> {ex.Message}\n";
+                        Console.WriteLine($"[{pageId}] Failed to create Reel for product: {product.Title} -> {ex.Message}");
+                    }
                 }
-                catch (Exception ex)
+                finally
                 {
-                    result += $"\n[{pageId}] Failed to create Post for product: {product.Title} -> {ex.Message}\n";
-                }
-
-                // -----2.Tạo Reel(dùng chung ảnh vừa tải, lệch giờ đăng để không trùng Post)---- -
-                try
-                {
-                    var reelPublishTime = publishTime.AddMinutes(Random.Shared.Next(10, 20)); // tránh trùng giờ với Post, tùy chỉnh nếu cần
-
-                    var reelResult = await PublishFacebookReelAsync(
-                        page,
-                        imageFiles,
-                        postContent,
-                        reelPublishTime);
-
-                    result += $"[{pageId}] Processed product: {product.Title} -> {reelResult}\n";
-                }
-                catch (Exception ex)
-                {
-                    result += $"[{pageId}] Failed to create Reel for product: {product.Title} -> {ex.Message}\n";
-                    Console.WriteLine($"[{pageId}] Failed to create Reel for product: {product.Title} -> {ex.Message}");
-                }
-
-                foreach (var file in imageFiles)
-                {
-                    if (File.Exists(file))
-                        File.Delete(file);
+                    // Luôn dọn ảnh tạm, kể cả khi tải ảnh lỗi giữa chừng
+                    foreach (var file in imageFiles)
+                    {
+                        TryDeleteFile(file);
+                    }
                 }
             }
 
@@ -197,8 +205,7 @@ namespace FacebookPost.Server.Service
             finally
             {
                 // Dọn file tạm
-                if (reelVideoPath != null && File.Exists(reelVideoPath))
-                    File.Delete(reelVideoPath);
+                TryDeleteFile(reelVideoPath);
             }
         }
 
@@ -287,21 +294,56 @@ namespace FacebookPost.Server.Service
                 WorkingDirectory = AppContext.BaseDirectory
             };
 
-            using var process = Process.Start(psi)
-                ?? throw new InvalidOperationException("Không thể khởi động ffmpeg process.");
-
-            var stdErrTask = process.StandardError.ReadToEndAsync();
-            await process.WaitForExitAsync();
-
-            File.Delete(listFilePath);
-
-            if (process.ExitCode != 0 || !File.Exists(outputPath))
+            try
             {
-                var stderr = await stdErrTask;
-                throw new Exception($"FFmpeg failed (ExitCode={process.ExitCode}). Chi tiết: {stderr}");
-            }
+                using var process = Process.Start(psi)
+                    ?? throw new InvalidOperationException("Không thể khởi động ffmpeg process.");
 
-            return outputPath;
+                // Đọc cả stdout và stderr để buffer không bị đầy làm ffmpeg treo
+                var stdOutTask = process.StandardOutput.ReadToEndAsync();
+                var stdErrTask = process.StandardError.ReadToEndAsync();
+
+                using var timeoutCts = new CancellationTokenSource(FfmpegTimeout);
+
+                try
+                {
+                    await process.WaitForExitAsync(timeoutCts.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    try
+                    {
+                        process.Kill(entireProcessTree: true);
+                    }
+                    catch (Exception killEx)
+                    {
+                        Console.WriteLine($"Không kill được ffmpeg process: {killEx.Message}");
+                    }
+
+                    throw new TimeoutException(
+                        $"FFmpeg chạy quá {FfmpegTimeout.TotalMinutes} phút, đã dừng process.");
+                }
+
+                await stdOutTask;
+                var stderr = await stdErrTask;
+
+                if (process.ExitCode != 0 || !File.Exists(outputPath))
+                {
+                    throw new Exception($"FFmpeg failed (ExitCode={process.ExitCode}). Chi tiết: {stderr}");
+                }
+
+                return outputPath;
+            }
+            catch
+            {
+                // Lỗi / timeout -> xóa video ghi dở
+                TryDeleteFile(outputPath);
+                throw;
+            }
+            finally
+            {
+                TryDeleteFile(listFilePath);
+            }
         }
 
         private async Task PublishFacebookPostAsync(FacebookPageOption page, List<string> imageFiles, string message, DateTime publishTime)
@@ -542,14 +584,37 @@ namespace FacebookPost.Server.Service
 
             response.EnsureSuccessStatusCode();
 
-            await using var fs =
-                new FileStream(
-                    fullPath,
-                    FileMode.Create);
+            try
+            {
+                await using var fs =
+                    new FileStream(
+                        fullPath,
+                        FileMode.Create);
 
-            await response.Content.CopyToAsync(fs);
+                await response.Content.CopyToAsync(fs);
+            }
+            catch
+            {
+                // Xóa file ghi dở để không để lại rác trong thư mục Temp
+                TryDeleteFile(fullPath);
+                throw;
+            }
 
             return fullPath;
+        }
+
+        private static void TryDeleteFile(string? path)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(path) && File.Exists(path))
+                    File.Delete(path);
+            }
+            catch (Exception ex)
+            {
+                // File đang bị lock hoặc thiếu quyền: bỏ qua, không làm hỏng luồng đăng bài
+                Console.WriteLine($"Không xóa được file tạm '{path}': {ex.Message}");
+            }
         }
 
         private DateTime GetRandomPublishTime(DateTime today, int index)
