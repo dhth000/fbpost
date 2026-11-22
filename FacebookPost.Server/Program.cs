@@ -2,6 +2,7 @@
 using FacebookPost.Server.Builder;
 using FacebookPost.Server.Helper;
 using FacebookPost.Server.Model;
+using FacebookPost.Server.Options;
 using FacebookPost.Server.Providers;
 using FacebookPost.Server.SchedulerJobs;
 using FacebookPost.Server.Service;
@@ -31,6 +32,15 @@ namespace FacebookPost.Server
             builder.Services.AddScoped<IShopeeLinkService, ShopeeLinkService>();
             builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
+            builder.Services.AddSingleton<IPublishStateService, PublishStateService>();
+
+            builder.Services.Configure<PublishAllFacebookJobOptions>(
+                builder.Configuration.GetSection(PublishAllFacebookJobOptions.SectionName));
+
+            var publishAllOptions =
+                builder.Configuration.GetSection(PublishAllFacebookJobOptions.SectionName).Get<PublishAllFacebookJobOptions>()
+                ?? new PublishAllFacebookJobOptions();
+
             builder.Services.AddQuartz(q =>
             {
                 var jobKey = new JobKey("PublishAllFacebook");
@@ -40,15 +50,19 @@ namespace FacebookPost.Server
                     options.WithIdentity(jobKey);
                 });
 
+                // Trigger lặp lại mỗi IntervalMinutes trong khung StartTime -> EndTime mỗi ngày (giờ VN).
+                // Job tự kiểm tra data/publish-state.json, chỉ chạy khi hôm nay chưa Passed.
                 q.AddTrigger(options =>
                 {
                     options
                         .ForJob(jobKey)
                         .WithIdentity("PublishAllFacebookTrigger")
-                        .WithCronSchedule(
-                            builder.Configuration["Quartz:PublishAllFacebookCron"]
-                                ?? throw new InvalidOperationException("Missing config Quartz:PublishAllFacebookCron"),
-                            x => x.InTimeZone(TimeHelper.TimeZone));
+                        .WithDailyTimeIntervalSchedule(x => x
+                            .OnEveryDay()
+                            .StartingDailyAt(new TimeOfDay(publishAllOptions.StartTime.Hour, publishAllOptions.StartTime.Minute))
+                            .EndingDailyAt(new TimeOfDay(publishAllOptions.EndTime.Hour, publishAllOptions.EndTime.Minute))
+                            .WithIntervalInMinutes(publishAllOptions.IntervalMinutes)
+                            .InTimeZone(TimeHelper.TimeZone));
                 });
 
                 // Job test: ghi log mỗi phút (logs/heartbeat.log) để kiểm tra Quartz có chạy trên IIS không.
