@@ -46,9 +46,27 @@ namespace FacebookPost.Server
                         .ForJob(jobKey)
                         .WithIdentity("PublishAllFacebookTrigger")
                         .WithCronSchedule(
-                            "0 2 22 * * ?",
+                            builder.Configuration["Quartz:PublishAllFacebookCron"]
+                                ?? throw new InvalidOperationException("Missing config Quartz:PublishAllFacebookCron"),
                             x => x.InTimeZone(TimeHelper.TimeZone));
                 });
+
+                // Job test: ghi log mỗi phút (logs/heartbeat.log) để kiểm tra Quartz có chạy trên IIS không.
+                // Bỏ comment cả AddJob và AddTrigger khi cần test (job không có trigger sẽ làm Quartz báo lỗi).
+                //var heartbeatJobKey = new JobKey("Heartbeat");
+                //
+                //q.AddJob<HeartbeatJob>(options => options.WithIdentity(heartbeatJobKey));
+                //
+                //q.AddTrigger(options =>
+                //{
+                //    options
+                //        .ForJob(heartbeatJobKey)
+                //        .WithIdentity("HeartbeatTrigger")
+                //        .StartNow()
+                //        .WithCronSchedule(
+                //            builder.Configuration["Quartz:HeartbeatCron"] ?? "0 * * ? * *",
+                //            x => x.InTimeZone(TimeHelper.TimeZone));
+                //});
             });
 
             builder.Services.AddQuartzHostedService(options =>
@@ -66,6 +84,8 @@ namespace FacebookPost.Server
             {
                 app.MapOpenApi();
             }
+
+            app.MapGet("/health", () => Results.Ok("OK"));
 
             app.UseHttpsRedirection();
 

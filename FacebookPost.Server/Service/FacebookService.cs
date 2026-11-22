@@ -97,6 +97,7 @@ namespace FacebookPost.Server.Service
                 catch (Exception ex)
                 {
                     result += $"[{pageId}] Failed to create Reel for product: {product.Title} -> {ex.Message}\n";
+                    Console.WriteLine($"[{pageId}] Failed to create Reel for product: {product.Title} -> {ex.Message}");
                 }
 
                 foreach (var file in imageFiles)
@@ -169,6 +170,8 @@ namespace FacebookPost.Server.Service
                 var uploadResp = await httpClient.SendAsync(uploadRequest);
                 if (!uploadResp.IsSuccessStatusCode)
                     throw new Exception($"Upload phase failed: {await uploadResp.Content.ReadAsStringAsync()}");
+
+                await Task.Delay(10000); // Delay 10s để chắc chắn video đã được xử lý xong trước khi gọi finish
 
                 // --- Phase 3: FINISH (publish hoặc schedule) ---
                 var scheduledTimestamp = _dateTimeProvider.ToUnixTimeSeconds(publishTime);
@@ -351,7 +354,7 @@ namespace FacebookPost.Server.Service
         private List<DateTime> GenerateStartTimes(DateTime now, int pageCount)
         {
             var start = now.Date.AddHours(22).AddMinutes(05);
-            var end = now.Date.AddHours(22).AddMinutes(35);
+            var end = now.Date.AddHours(22).AddMinutes(55);
 
             // Sau 23:15 thì chạy ngay toàn bộ
             if (now >= end)
