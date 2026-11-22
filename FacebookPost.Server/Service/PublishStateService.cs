@@ -19,6 +19,10 @@ namespace FacebookPost.Server.Service
         };
 
         private readonly SemaphoreSlim _fileLock = new(1, 1);
+
+        // Bản sao trạng thái trong bộ nhớ: nếu IIS không cho ghi file (thiếu quyền) thì trong cùng process
+        // vẫn biết hôm nay đã Passed, tránh job đăng lại mỗi lần trigger.
+        private PublishState? _memoryState;
         private readonly string _filePath = Path.Combine(AppContext.BaseDirectory, "data", "publish-state.json");
         private readonly ILogger<PublishStateService> _logger;
 
@@ -29,26 +33,33 @@ namespace FacebookPost.Server.Service
 
         public async Task<PublishStatus> GetStatusAsync(DateOnly date)
         {
+            var dateText = date.ToString(DateFormat);
+
             await _fileLock.WaitAsync();
             try
             {
+                if (_memoryState?.Date == dateText && _memoryState.Status == PublishStatus.Passed)
+                {
+                    return PublishStatus.Passed;
+                }
+
                 if (!File.Exists(_filePath))
                 {
-                    return PublishStatus.None;
+                    return _memoryState?.Date == dateText ? _memoryState.Status : PublishStatus.None;
                 }
 
                 var json = await File.ReadAllTextAsync(_filePath);
                 var state = JsonSerializer.Deserialize<PublishState>(json, JsonOptions);
 
-                return state != null && state.Date == date.ToString(DateFormat)
+                return state != null && state.Date == dateText
                     ? state.Status
                     : PublishStatus.None;
             }
             catch (Exception ex)
             {
-                // File hỏng / không đọc được -> coi như chưa chạy để job chạy lại
+                // File hỏng / không đọc được -> dùng trạng thái trong bộ nhớ, không có thì coi như chưa chạy
                 _logger.LogError(ex, "Không đọc được file trạng thái {FilePath}", _filePath);
-                return PublishStatus.None;
+                return _memoryState?.Date == dateText ? _memoryState.Status : PublishStatus.None;
             }
             finally
             {
@@ -69,6 +80,8 @@ namespace FacebookPost.Server.Service
             await _fileLock.WaitAsync();
             try
             {
+                _memoryState = state;
+
                 Directory.CreateDirectory(Path.GetDirectoryName(_filePath)!);
 
                 // Ghi ra file tạm rồi move để tránh file bị hỏng nếu app tắt giữa chừng
@@ -78,7 +91,9 @@ namespace FacebookPost.Server.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Không ghi được file trạng thái {FilePath}", _filePath);
+                _logger.LogCritical(ex,
+                    "Không ghi được file trạng thái {FilePath}. Kiểm tra quyền Modify của App Pool trên thư mục data. " +
+                    "Trạng thái chỉ còn lưu trong bộ nhớ, sẽ mất khi app restart.", _filePath);
             }
             finally
             {
